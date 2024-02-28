@@ -2,53 +2,62 @@
 
 namespace App\Http\Controllers\apiV1;
 
-use App\Helpers\DeleteFile;
-use App\Helpers\UploadFile;
+use App\Helpers\Traits\ApiResponcer;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\TaskRequest;
+use App\Http\Requests\Task\TaskCreateRequest;
+use App\Http\Requests\Task\TaskUpdateRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
+use App\Repositories\TaskRepository;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    public function index()
+    use ApiResponcer;
+
+    public function __construct(public TaskRepository $repository)
     {
-        return TaskResource::collection(Task::all());
     }
 
-    public function store(TaskRequest $request)
+    public function index(Request $request)
     {
-        $data = $request->validated();
-        if(!is_null($request->image))
-        {
-         $data['image'] = (new UploadFile())->handle(Task::PATH,$request->image);
-        }
-        return new TaskResource(Task::create($data));
+        $tasks = $this->repository->getAll($request);
+        $tasks = TaskResource::collection($tasks);
+
+        return $this->success($tasks);
+    }
+
+    public function store(TaskCreateRequest $request)
+    {
+       $task = $this->repository->store($request);
+       $task = new TaskResource($task);
+        return $this->success($task, 'Task created');
     }
 
     public function show(Task $task)
     {
-        return new TaskResource($task);
+        $task = new TaskResource($task);
+        return $this->success($task);
     }
 
-    public function update(TaskRequest $request, Task $task)
+    public function update(TaskUpdateRequest $request, Task $task)
     {
-        $data = $request->validated();
-        if(!is_null($request->image))
-        {
-            
-            (new DeleteFile())->handle( $task->image,Task::PATH);
-            $data['image'] = (new UploadFile())->handle(Task::PATH,$request->image);
-        }
-        $task->update($data);
-
-        return new TaskResource($task);
+       $task = $this->repository->update($request,$task);
+       $task = new TaskResource($task);
+        return $this->success($task, 'Task Updated');
     }
 
     public function destroy(Task $task)
     {
-        $task->delete();
+        $this->repository->destroy($task);
+        return $this->success(null, 'Task deleted');
+    }
 
-        return response()->json();
+    public function deleteImage($id){
+
+        if(!$this->repository->deleteImage($id))
+            return $this->error('Image not found' , 404);
+
+        return $this->success(null,'Image deleted');
     }
 }

@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Task;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class TaskRequest extends FormRequest
+class TaskCreateRequest extends FormRequest
 {
     public function rules()
     {
         return [
             'title' => ['required','string', 'max:255'],
-            'description' => ['required','text'],
-            'image' => ['required','file'],
+            'description' => ['nullable'],
+            'image' => ['nullable','file'],
             'status' => ['required','string','max:255'],
         ];
     }

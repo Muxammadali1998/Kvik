@@ -13,5 +13,5 @@ class Task extends Model
         'status',
     ];
 
-    const PATH = '/images/tasks';
+    const IMAGE_PATH = '/images/tasks';
 }

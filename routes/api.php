@@ -20,3 +20,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::apiResource('/task',TaskController::class);
+Route::delete('/task/{id}/image',[TaskController::class, 'deleteImage']);
